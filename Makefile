@@ -27,6 +27,9 @@ CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
 GO_BUILD=$(GO) build
+
+GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 $(GO) build
+
 # Go module support: set `-mod=vendor` to use the vendored sources
 ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
   GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
@@ -105,6 +108,9 @@ binary-local:
 
 binary-local-static:
 	$(GPGME_ENV) $(GO_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+
+binary-local-static-windows:
+	$(GPGME_ENV) $(GO_WINDOWS_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo.exe ./cmd/skopeo
 
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
