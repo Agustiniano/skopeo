@@ -102,6 +102,11 @@ binary-static: cmd/skopeo
 	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
 		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
+binary-static-windows: cmd/skopeo
+	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
+	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
+		skopeobuildimage make binary-local-static-windows $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+
 # Build w/o using containers
 binary-local:
 	$(GPGME_ENV) $(GO_BUILD) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo

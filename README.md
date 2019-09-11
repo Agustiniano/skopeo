@@ -211,6 +211,21 @@ To build a pure-Go static binary (disables ostree, devicemapper, btrfs, and gpgm
 $ make binary-static DISABLE_CGO=1
 ```
 
+### Building a Windows Binary
+A Windows binary can be built, but it will not support things like ostree, devicemapper, btrds and gpgme. 
+
+To build a pure-Go static binary locally:
+
+```sh
+$ make binary-local-static-windows DISABLE_CGO=1
+```
+
+To build a pure-Go static binary in a container:
+
+```sh
+$ make binary-static-windows DISABLE_CGO=1
+```
+
 ### Building documentation
 To build the manual you will need go-md2man.
 ```sh
