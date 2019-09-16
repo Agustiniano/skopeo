@@ -40,8 +40,37 @@ Skopeo works with API V2 registries such as Docker registries, the Atomic regist
  * ostree:image[@/absolute/repo/path]
          An image in local OSTree repository.  /absolute/repo/path defaults to /ostree/repo.
 
+Operating System Support
+-
+
+Skopeo will run on Linux, Windows and OSX operating systems. Not all functionality is supported on all OSes. See the table below for functional coverage.
+
+*Functionality Table*
+| Feature             | Linux | Windows |  OSX  |
+| ------------------- | :---: | :-----: | :---: |
+| *inspect*           |   X   |    X    |   X   |
+| *copy*              |   X   |    X    |   X   |
+| *delete*            |   X   |    X    |   X   |
+| *manifest-digest*   |   X   |    ?    |   ?   |
+| *standalone-sign*   |   X   |    ?    |   ?   |
+| *standalone-verify* |   X   |    ?    |   ?   |
+
+
+*Repository Type Support*
+| Feature              | Linux |    Windows     |  OSX  |
+| -------------------- | :---: | :------------: | :---: |
+| *containers-storage* |   X   |       O        |   O   |
+| *dir:path*           |   X   |       O        |   X   |
+| *docker://*          |   X   |       X        |   X   |
+| *docker-archive*     |   X   |       O        |   X   |
+| *docker-daemon*      |   X   | O-Windows Mode |   X   |
+| *oci:path:tag*       |   X   |       X        |   X   |
+| *ostree:image*       |   X   |       O        |   O   |
+
+
 Inspecting a repository
 -
+
 `skopeo` is able to _inspect_ a repository on a Docker registry and fetch images layers.
 The _inspect_ command fetches the repository's manifest and it is able to show you a `docker inspect`-like
 json output about a whole repository or a tag. This tool, in contrast to `docker inspect`, helps you gather useful information about
@@ -224,6 +253,21 @@ To build a pure-Go static binary in a container:
 
 ```sh
 $ make binary-static-windows DISABLE_CGO=1
+```
+
+### Building a OSX Binary
+A OSX binary can be built, but it will not support things like ostree, devicemapper, btrds and gpgme. 
+
+To build a pure-Go static binary locally:
+
+```sh
+$ make binary-local-static-osx DISABLE_CGO=1
+```
+
+To build a pure-Go static binary in a container:
+
+```sh
+$ make binary-static-osx DISABLE_CGO=1
 ```
 
 ### Building documentation

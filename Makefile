@@ -29,6 +29,7 @@ GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 GO_BUILD=$(GO) build
 
 GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 $(GO) build
+GO_OSX_BUILD=GOOS=darwin GOARCH=amd64 $(GO) build
 
 # Go module support: set `-mod=vendor` to use the vendored sources
 ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
@@ -107,6 +108,11 @@ binary-static-windows: cmd/skopeo
 	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
 		skopeobuildimage make binary-local-static-windows $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
+binary-static-osx: cmd/skopeo
+	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
+	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
+		skopeobuildimage make binary-local-static-osx $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+
 # Build w/o using containers
 binary-local:
 	$(GPGME_ENV) $(GO_BUILD) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
@@ -116,6 +122,9 @@ binary-local-static:
 
 binary-local-static-windows:
 	$(GPGME_ENV) $(GO_WINDOWS_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo.exe ./cmd/skopeo
+
+binary-local-static-osx:
+	$(GPGME_ENV) $(GO_OSX_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo.osx ./cmd/skopeo
 
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
