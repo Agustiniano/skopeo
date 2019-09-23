@@ -81,7 +81,7 @@ else
 	ifeq ($(UNAME_S),Darwin)
 		override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 		export CGO_ENABLED = 0
-    	export DISABLE_CGO = 1
+		export DISABLE_CGO = 1
 	endif
 endif
 
@@ -104,7 +104,6 @@ help:
 	@echo " * 'check' - Including above validate, test-integration and test-unit"
 	@echo " * 'shell' - Run the built image and attach to a shell"
 	@echo " * 'clean' - Clean artifacts"
-	@echo " * 'release' - Build release artifacts for Linux, OSX and Windows
 
 # Build a container image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
@@ -210,7 +209,7 @@ validate-local:
 	hack/make.sh validate-git-marks validate-gofmt validate-lint
 
 test-unit-local:
-	$(GPGME_ENV) GO111MODULE=on $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
+	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
 vendor:
 	export GO111MODULE=on \
