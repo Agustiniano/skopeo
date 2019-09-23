@@ -26,15 +26,15 @@ GO ?= go
 CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
-GO_BUILD=GO111MODULE=on $(GO) build
+GO_BUILD=$(GO) build
 
 GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build
 GO_OSX_BUILD=GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 $(GO) build
 
 # Go module support: set `-mod=vendor` to use the vendored sources
-#ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
-#  GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
-#endif
+ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
+  GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
+endif
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
