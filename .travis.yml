@@ -2,11 +2,11 @@ language: go
 
 matrix:
   include:
-  # -  os: linux
-  #   sudo: required
-  #   services:
-  #     - docker
-  # -  os: osx
+  -  os: linux
+     sudo: required
+     services:
+       - docker
+  -  os: osx
   -  os: windows
 
 notifications:

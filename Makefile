@@ -26,15 +26,15 @@ GO ?= go
 CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
-GO_BUILD=$(GO) build
+GO_BUILD=GO111MODULE=on $(GO) build
 
 GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build
-GO_OSX_BUILD=GOOS=darwin GOARCH=amd64 $(GO) build
+GO_OSX_BUILD=GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 $(GO) build
 
 # Go module support: set `-mod=vendor` to use the vendored sources
-ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
-  GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
-endif
+#ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
+#  GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
+#endif
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
@@ -76,6 +76,13 @@ ifeq ($(OS),Windows_NT)
        override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
        export CGO_ENABLED = 0
        export DISABLE_CGO = 1
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Darwin)
+		override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+		export CGO_ENABLED = 0
+    	export DISABLE_CGO = 1
+	endif
 endif
 
 
@@ -203,7 +210,7 @@ validate-local:
 	hack/make.sh validate-git-marks validate-gofmt validate-lint
 
 test-unit-local:
-	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
+	$(GPGME_ENV) GO111MODULE=on $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
 vendor:
 	export GO111MODULE=on \

@@ -52,7 +52,7 @@ Skopeo will run on Linux, Windows and OSX operating systems. Not all functionali
 | *copy*              |   X   |    X    |   X   |
 | *delete*            |   X   |    X    |   X   |
 | *manifest-digest*   |   X   |    ?    |   ?   |
-| *standalone-sign*   |   X   |    ?    |   ?   |
+| *standalone-sign*   |   X   |    O    |   ?   |
 | *standalone-verify* |   X   |    ?    |   ?   |
 
 
