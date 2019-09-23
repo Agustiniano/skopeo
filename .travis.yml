@@ -3,9 +3,9 @@ language: go
 matrix:
   include:
   # -  os: linux
-     sudo: required
-     services:
-       - docker
+  #   sudo: required
+  #   services:
+  #     - docker
   # -  os: osx
   -  os: windows
 
