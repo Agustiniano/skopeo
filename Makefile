@@ -193,7 +193,7 @@ validate: build-container
 test-all-local: validate-local test-unit-local
 
 validate-local:
-	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
+	hack/make.sh validate-git-marks validate-gofmt validate-lint
 
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
