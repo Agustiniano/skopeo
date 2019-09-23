@@ -28,7 +28,7 @@ GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
 GO_BUILD=$(GO) build
 
-GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 $(GO) build
+GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build
 GO_OSX_BUILD=GOOS=darwin GOARCH=amd64 $(GO) build
 
 # Go module support: set `-mod=vendor` to use the vendored sources
@@ -71,6 +71,13 @@ BUILDTAGS += $(LOCAL_BUILD_TAGS)
 ifeq ($(DISABLE_CGO), 1)
 	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 endif
+
+ifeq ($(OS),Windows_NT)
+       override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+       export CGO_ENABLED = 0
+       export DISABLE_CGO = 1
+endif
+
 
 #   make all DEBUG=1
 #     Note: Uses the -N -l go compiler options to disable compiler optimizations
