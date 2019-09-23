@@ -2,11 +2,12 @@ language: go
 
 matrix:
   include:
-  -  os: linux
+  # -  os: linux
      sudo: required
      services:
        - docker
-  -  os: osx
+  # -  os: osx
+  -  os: windows
 
 notifications:
   email: false
@@ -21,5 +22,6 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install gpgme ; fi
 
 script:
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]];   then hack/travis_osx.sh ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then hack/travis_osx.sh ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make vendor && ./hack/tree_status.sh && make check ; fi

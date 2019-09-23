@@ -90,6 +90,7 @@ help:
 	@echo " * 'check' - Including above validate, test-integration and test-unit"
 	@echo " * 'shell' - Run the built image and attach to a shell"
 	@echo " * 'clean' - Clean artifacts"
+	@echo " * 'release' - Build release artifacts for Linux, OSX and Windows
 
 # Build a container image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
@@ -202,3 +203,5 @@ vendor:
 		$(GO) mod tidy && \
 		$(GO) mod vendor && \
 		$(GO) mod verify
+
+release: 
