@@ -75,14 +75,12 @@ endif
 ifeq ($(OS),Windows_NT)
        override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
        export CGO_ENABLED = 0
-       export DISABLE_CGO = 1
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
 		# echo "Setting Darwin Settings"
 		override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 		export CGO_ENABLED = 0
-		export DISABLE_CGO = 1
 	endif
 endif
 
@@ -155,7 +153,8 @@ docs-in-container:
 		skopeobuildimage make docs $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 clean:
-	rm -f skopeo docs/*.1
+	rm -f skopeo docs/*.1 *.tar.gz
+	rm -rf release
 
 install: install-binary install-docs install-completions
 	install -d -m 755 ${SIGSTOREDIR}
@@ -207,7 +206,6 @@ validate: build-container
 test-all-local: validate-local test-unit-local
 
 validate-local:
-	set | grep CGO
 	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 test-unit-local:
