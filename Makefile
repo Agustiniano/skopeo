@@ -79,6 +79,7 @@ ifeq ($(OS),Windows_NT)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
+		# echo "Setting Darwin Settings"
 		override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 		export CGO_ENABLED = 0
 		export DISABLE_CGO = 1
@@ -206,7 +207,8 @@ validate: build-container
 test-all-local: validate-local test-unit-local
 
 validate-local:
-	hack/make.sh validate-git-marks validate-gofmt validate-lint
+	set | grep CGO
+	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
