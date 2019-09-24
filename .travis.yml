@@ -20,9 +20,17 @@ install:
   # to happen around November 2017 per https://blog.travis-ci.com/2017-10-16-a-new-default-os-x-image-is-coming .
   # Remove the (brew update) at that time.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install gpgme ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install make ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install make && choco install zip ; fi
   
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]];   then hack/travis_windows.sh ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then hack/travis_osx.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then hack/travis_windows.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then hack/travis_osx.sh ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make vendor && ./hack/tree_status.sh && make check ; fi
+
+deploy:
+  provider: releases
+  api_key: "GITHUB OAUTH TOKEN"
+  file: "release/*"
+  skip_cleanup: true
+  on:
+    tags: true
