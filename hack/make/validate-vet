@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 errors=$(go vet -tags "$BUILDTAGS" $(go list -e ./... | grep -v "$SKOPEO_PKG"/vendor))
 

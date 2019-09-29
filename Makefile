@@ -54,19 +54,13 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 MANPAGES_MD = $(wildcard docs/*.md)
 MANPAGES ?= $(MANPAGES_MD:%.md=%)
 
-BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh)
-LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
-OSTREE_BUILD_TAG = $(shell hack/ostree_tag.sh)
-LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(DARWIN_BUILD_TAG)
-BUILDTAGS += $(LOCAL_BUILD_TAGS)
-
 ifeq ($(BUILD_OS),windows)
-	BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+	OS_BUILD_TAG = containers_image_openpgp
 	GO_BUILD=GOOS=windows GOARCH=amd64 $(GO) build
 	BUILD_OUTPUT=skopeo.exe
 else ifeq ($(BUILD_OS),darwin)
 	PREFIX ?= ${DESTDIR}/usr/local
-	DARWIN_BUILD_TAG=containers_image_ostree_stub
+	OS_BUILD_TAG=containers_image_ostree_stub
 	# On macOS, (brew install gpgme) installs it within /usr/local, but /usr/local/include is not in the default search path.
 	# Rather than hard-code this directory, use gpgme-config. Sadly that must be done at the top-level user
 	# instead of locally in the gpgme subpackage, because cgo supports only pkg-config, not general shell scripts,
@@ -75,13 +69,14 @@ else ifeq ($(BUILD_OS),darwin)
 	# (and the user will probably find out because the cgo compilation will fail).
 	GPGME_ENV := CGO_CFLAGS="$(shell gpgme-config --cflags 2>/dev/null)" CGO_LDFLAGS="$(shell gpgme-config --libs 2>/dev/null)"
 
-	# echo "Setting Darwin Settings"
-	BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 	GO_BUILD=GOOS=darwin GOARCH=amd64 $(GO) build
-else
-# if we arent windows and we arent osx then we must be linux (the default)
-
 endif
+
+BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh)
+LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
+OSTREE_BUILD_TAG = $(shell hack/ostree_tag.sh)
+LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(OS_BUILD_TAG)
+BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
 ifeq ($(DISABLE_CGO), 1)
 	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
