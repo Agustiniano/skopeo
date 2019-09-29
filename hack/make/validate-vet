@@ -1,16 +1,6 @@
 #!/bin/bash
-# we need to NOT die on errors here if we want to support a NON-CGO build
-# we will re-enable it at the end of the script
-set +e
 
-errors=$(go vet $(go list -e ./... | grep -v "$SKOPEO_PKG"/vendor))
-
-# go vet dumps out a line about gpgme having an issue however on a build without CGO this doesnt matter
-# the following is hacky, BUT allows go vet to run and just strips out one specific error but should catch all others
-if [ -z "$CGO_ENABLED"  ]; then
-	echo "Dropping errors that shouldnt exist"
-	errors=$(echo $errors | grep -v "containers/image" )
-fi
+errors=$(go vet -tags "$BUILDTAGS" $(go list -e ./... | grep -v "$SKOPEO_PKG"/vendor))
 
 if [ -z "$errors" ]; then
 	echo 'Congratulations!  All Go source files have been vetted.'
@@ -24,5 +14,3 @@ else
 	} >&2
 	false
 fi
-
-set -e

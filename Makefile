@@ -3,15 +3,9 @@
 export GOPROXY=https://proxy.golang.org
 
 ifeq ($(shell uname),Darwin)
-PREFIX ?= ${DESTDIR}/usr/local
-DARWIN_BUILD_TAG=containers_image_ostree_stub
-# On macOS, (brew install gpgme) installs it within /usr/local, but /usr/local/include is not in the default search path.
-# Rather than hard-code this directory, use gpgme-config. Sadly that must be done at the top-level user
-# instead of locally in the gpgme subpackage, because cgo supports only pkg-config, not general shell scripts,
-# and gpgme does not install a pkg-config file.
-# If gpgme is not installed or gpgme-config can’t be found for other reasons, the error is silently ignored
-# (and the user will probably find out because the cgo compilation will fail).
-GPGME_ENV := CGO_CFLAGS="$(shell gpgme-config --cflags 2>/dev/null)" CGO_LDFLAGS="$(shell gpgme-config --libs 2>/dev/null)"
+	BUILD_OS ?= darwin
+else ifeq ($(OS),Windows_NT)
+	BUILD_OS ?= windows
 else
 PREFIX ?= ${DESTDIR}/usr
 endif
@@ -67,15 +61,23 @@ LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(D
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
 ifeq ($(BUILD_OS),windows)
-	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
-    export CGO_ENABLED = 0
-	GO_BUILD=GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build
+	BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+	GO_BUILD=GOOS=windows GOARCH=amd64 $(GO) build
 	BUILD_OUTPUT=skopeo.exe
-else ifeq ($(BUILD_OS), darwin)
+else ifeq ($(BUILD_OS),darwin)
+	PREFIX ?= ${DESTDIR}/usr/local
+	DARWIN_BUILD_TAG=containers_image_ostree_stub
+	# On macOS, (brew install gpgme) installs it within /usr/local, but /usr/local/include is not in the default search path.
+	# Rather than hard-code this directory, use gpgme-config. Sadly that must be done at the top-level user
+	# instead of locally in the gpgme subpackage, because cgo supports only pkg-config, not general shell scripts,
+	# and gpgme does not install a pkg-config file.
+	# If gpgme is not installed or gpgme-config can’t be found for other reasons, the error is silently ignored
+	# (and the user will probably find out because the cgo compilation will fail).
+	GPGME_ENV := CGO_CFLAGS="$(shell gpgme-config --cflags 2>/dev/null)" CGO_LDFLAGS="$(shell gpgme-config --libs 2>/dev/null)"
+
 	# echo "Setting Darwin Settings"
-	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
-	export CGO_ENABLED = 0
-	GO_BUILD=GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 $(GO) build
+	BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+	GO_BUILD=GOOS=darwin GOARCH=amd64 $(GO) build
 else
 # if we arent windows and we arent osx then we must be linux (the default)
 
@@ -84,7 +86,6 @@ endif
 ifeq ($(DISABLE_CGO), 1)
 	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 endif
-
 
 #   make all DEBUG=1
 #     Note: Uses the -N -l go compiler options to disable compiler optimizations
@@ -191,7 +192,7 @@ validate: build-container
 test-all-local: validate-local test-unit-local
 
 validate-local:
-	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
+	BUILDTAGS="$(BUILDTAGS)" hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
