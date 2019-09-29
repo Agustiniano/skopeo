@@ -54,8 +54,12 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 MANPAGES_MD = $(wildcard docs/*.md)
 MANPAGES ?= $(MANPAGES_MD:%.md=%)
 
+BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh)
+LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
+OSTREE_BUILD_TAG = $(shell hack/ostree_tag.sh)
+GPGME_BUILD_TAG = $(shell hack/gpgme_installed_tag.sh)
+
 ifeq ($(BUILD_OS),windows)
-	OS_BUILD_TAG = containers_image_openpgp
 	GO_BUILD=GOOS=windows GOARCH=amd64 $(GO) build
 	BUILD_OUTPUT=skopeo.exe
 else ifeq ($(BUILD_OS),darwin)
@@ -72,10 +76,7 @@ else ifeq ($(BUILD_OS),darwin)
 	GO_BUILD=GOOS=darwin GOARCH=amd64 $(GO) build
 endif
 
-BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh)
-LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
-OSTREE_BUILD_TAG = $(shell hack/ostree_tag.sh)
-LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(OS_BUILD_TAG)
+LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(GPGME_BUILD_TAG)
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
 ifeq ($(DISABLE_CGO), 1)
