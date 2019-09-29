@@ -27,9 +27,7 @@ CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
 GO_BUILD=$(GO) build
-
-GO_WINDOWS_BUILD=GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build
-GO_OSX_BUILD=GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 $(GO) build
+BUILD_OUTPUT=skopeo
 
 # Go module support: set `-mod=vendor` to use the vendored sources
 ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
@@ -68,20 +66,23 @@ OSTREE_BUILD_TAG = $(shell hack/ostree_tag.sh)
 LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(DARWIN_BUILD_TAG)
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
-ifeq ($(DISABLE_CGO), 1)
+ifeq ($(BUILD_OS),windows)
 	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+    export CGO_ENABLED = 0
+	GO_BUILD=GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build
+	BUILD_OUTPUT=skopeo.exe
+else ifeq ($(BUILD_OS), darwin)
+	# echo "Setting Darwin Settings"
+	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+	export CGO_ENABLED = 0
+	GO_BUILD=GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 $(GO) build
+else
+# if we arent windows and we arent osx then we must be linux (the default)
+
 endif
 
-ifeq ($(OS),Windows_NT)
-       override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
-       export CGO_ENABLED = 0
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Darwin)
-		# echo "Setting Darwin Settings"
-		override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
-		export CGO_ENABLED = 0
-	endif
+ifeq ($(DISABLE_CGO), 1)
+	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 endif
 
 
@@ -109,35 +110,19 @@ help:
 binary: cmd/skopeo
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
-		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) $(if $(BUILD_OS),BUILD_OS=$(BUILD_OS)) BUILDTAGS='$(BUILDTAGS)'
 
 binary-static: cmd/skopeo
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
-		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
-
-binary-static-windows: cmd/skopeo
-	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
-		skopeobuildimage make binary-local-static-windows $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
-
-binary-static-osx: cmd/skopeo
-	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
-		skopeobuildimage make binary-local-static-osx $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) $(if $(BUILD_OS),BUILD_OS=$(BUILD_OS)) BUILDTAGS='$(BUILDTAGS)'
 
 # Build w/o using containers
 binary-local:
-	$(GPGME_ENV) $(GO_BUILD) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GPGME_ENV) $(GO_BUILD) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o $(BUILD_OUTPUT) ./cmd/skopeo
 
 binary-local-static:
-	$(GPGME_ENV) $(GO_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
-
-binary-local-static-windows:
-	$(GPGME_ENV) $(GO_WINDOWS_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo.exe ./cmd/skopeo
-
-binary-local-static-osx:
-	$(GPGME_ENV) $(GO_OSX_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo.osx ./cmd/skopeo
+	$(GPGME_ENV) $(GO_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o $(BUILD_OUTPUT) ./cmd/skopeo
 
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .

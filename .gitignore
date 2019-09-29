@@ -1,3 +1,6 @@
 *.1
 /layers-*
 /skopeo
+dist/*
+release/*
+_gopath/*
