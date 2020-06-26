@@ -1,4 +1,5 @@
-#!/usr/bin/env bash // set -x
+#!/usr/bin/env bash
+set -x
 
 export GOPATH=$(pwd)/_gopath
 export PATH=$GOPATH/bin:$PATH
