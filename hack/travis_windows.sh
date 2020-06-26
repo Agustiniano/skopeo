@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-set -x
+#!/usr/bin/env bash // set -x
 
 export GOPATH=$(pwd)/_gopath
 export PATH=$GOPATH/bin:$PATH
@@ -22,3 +21,9 @@ mv skopeo.exe release
 zip -r skopeo-windows-${RELEASE}.zip release 
 rm -f release/*
 mv skopeo-windows-${RELEASE}.zip release 
+cd release
+curl \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Content-Type: $(file -b --mime-type skopeo-windows-${RELEASE}.zip)" \
+    --data-binary @skopeo-windows-${RELEASE}.zip \
+    "https://uploads.github.com/repos/hubot/singularity/releases/123/assets?name=$(basename skopeo-windows-${RELEASE}.zip)"
