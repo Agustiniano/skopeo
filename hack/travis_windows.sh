@@ -27,4 +27,4 @@ curl \
     -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: $(file -b --mime-type skopeo-windows-${RELEASE}.zip)" \
     --data-binary @skopeo-windows-${RELEASE}.zip \
-    "https://uploads.github.com/repos/hubot/singularity/releases/123/assets?name=$(basename skopeo-windows-${RELEASE}.zip)"
+    "https://uploads.github.com/repos/Agustiniano/skopeo/releases/${RELEASE}/assets?name=skopeo-windows-${RELEASE}.zip"
