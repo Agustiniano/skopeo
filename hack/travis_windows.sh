@@ -24,7 +24,6 @@ rm -f release/*
 mv skopeo-windows-${RELEASE}.zip release 
 cd release
 curl \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Content-Type: $(file -b --mime-type skopeo-windows-${RELEASE}.zip)" \
-    --data-binary @skopeo-windows-${RELEASE}.zip \
-    "https://uploads.github.com/repos/Agustiniano/skopeo/releases/${RELEASE}/assets?name=skopeo-windows-${RELEASE}.zip"
+    -H "PRIVATE-TOKEN: HE8gX77kC2SA3uL5Y83q" \
+    --form "file=@skopeo-windows-${RELEASE}.zip" \
+    "https://gitlab.com/api/v4/projects/13643461/uploads"
