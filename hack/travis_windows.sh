@@ -25,5 +25,5 @@ mv skopeo-windows-${RELEASE}.zip release
 cd release
 curl \
     -H "PRIVATE-TOKEN: HE8gX77kC2SA3uL5Y83q" \
-    --form "file=@skopeo.exe" \
+    --form "file=@skopeo-windows-${RELEASE}.zip" \
     "https://gitlab.com/api/v4/projects/13643461/uploads"
